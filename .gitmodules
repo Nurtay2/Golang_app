@@ -1,0 +1,3 @@
+[submodule "TSIS2"]
+	path = TSIS2
+	url = https://github.com/Nurtay2/Golang_app
