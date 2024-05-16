@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/Nurtay2/TSIS2-UFC/pkg/ufc"
 	_ "github.com/lib/pq"
@@ -41,22 +42,39 @@ func main() {
 	defer db.Close()
 
 	http.HandleFunc("/fighters", func(w http.ResponseWriter, r *http.Request) {
-		ufc.ListFighters(w, r, db)
+		switch r.Method {
+		case http.MethodGet:
+			ufc.ListFighters(w, r, db)
+		case http.MethodPost:
+			ufc.CreateFighter(w, r, db)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
 	})
-	http.HandleFunc("/fighters/create", func(w http.ResponseWriter, r *http.Request) {
-		ufc.CreateFighter(w, r, db)
-	})
-	http.HandleFunc("/fighters/get", func(w http.ResponseWriter, r *http.Request) {
-		ufc.GetFighter(w, r, db)
-	})
-	http.HandleFunc("/fighters/update", func(w http.ResponseWriter, r *http.Request) {
-		ufc.UpdateFighter(w, r, db)
-	})
-	http.HandleFunc("/fighters/delete", func(w http.ResponseWriter, r *http.Request) {
-		ufc.DeleteFighter(w, r, db)
+	http.HandleFunc("/fighters/", func(w http.ResponseWriter, r *http.Request) {
+		idStr := r.URL.Path[len("/fighters/"):]
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			http.Error(w, "Invalid fighter ID", http.StatusBadRequest)
+			return
+		}
+
+		switch r.Method {
+		case http.MethodGet:
+			r.URL.RawQuery = "id=" + strconv.Itoa(id)
+			ufc.GetFighter(w, r, db)
+		case http.MethodPut:
+			r.URL.RawQuery = "id=" + strconv.Itoa(id)
+			ufc.UpdateFighter(w, r, db)
+		case http.MethodDelete:
+			r.URL.RawQuery = "id=" + strconv.Itoa(id)
+			ufc.DeleteFighter(w, r, db)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
 	})
 
 	port := "8080"
-	log.Printf("UFC Server running on :%s...\n", port)
+	log.Printf("Server running on :%s...\n", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }

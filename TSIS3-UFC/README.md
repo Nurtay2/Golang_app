@@ -9,6 +9,8 @@ POST /champions
 GET /champions/:id
 PUT /champions/:id
 DELETE /champions/:id
+uehjdurvehj
+hbejdshbjgit
 ```
 
 ## DB Structure
